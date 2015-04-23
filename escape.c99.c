@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <ctype.h>
+
 #define TEMP_DIR "foo"
 
 /* Validation check for supplied username */
@@ -95,6 +97,12 @@ int main(int argc, char *argv[]) {
         chroot(".");
         /* exec a bash in interactive mode */
 	if (argc > 1) {
+                /* Verify that argv[1] is decent */
+                if (!is_valid_username(argv[1])) {
+                    fprintf(stderr, "Exiting...\n");
+                    exit (1);
+                }
+
 		/* Include supplied username */
 		char switch_user_command[256];
 
@@ -102,7 +110,7 @@ int main(int argc, char *argv[]) {
 		snprintf(
 			switch_user_command,
 			sizeof switch_user_command,
-			"su --login %s",
+			"su --login -- %s",
 			argv[1]);
 
 		if (execl("/bin/bash", "-i", "-c", switch_user_command, NULL)<0) {
