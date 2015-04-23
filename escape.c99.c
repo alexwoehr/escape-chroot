@@ -11,6 +11,33 @@
 
 #define TEMP_DIR "foo"
 
+/* Validation check for supplied username */
+/* Note: for simplicity, this function prints a correponding error message for invalid inputs. */
+int is_valid_username(const char *username) {
+    /* Test 1: String length. Pretty basic sanity check. Overall, the buffer should be less than 256 chars. */
+    if (64 < strlen(username)) {
+        fprintf(stderr, "Bad username. It is much too long! Username follows:\n%s\n", username);
+        /* Failure */
+        return 0;
+    }
+
+    /* Test 2: Contents of username. Should be REALLY straightforward. */
+    /* Won't work with unicode, obviously. */
+    unsigned int i;
+    for (i=0; i < strlen(username); ++i) {
+        /* Uses ctype.h functions */
+        /* Check if current character satisfies the ctype requirement (alphanumeric). */
+        if (!isalnum(username[i])) {
+            fprintf(stderr, "Bad username. It is not alphanumeric. Username follows:\n%s\n", username);
+            /* Failure */
+            return 0;
+        }
+    }
+
+    /* Success */
+    return 1;
+}
+
 int main(int argc, char *argv[]) {
         int i;
         int dir_fd;
@@ -71,6 +98,7 @@ int main(int argc, char *argv[]) {
 		/* Include supplied username */
 		char switch_user_command[256];
 
+                /* Note: we could just exec su --login directly, but that does not seem to initialize the environment correctly. */
 		snprintf(
 			switch_user_command,
 			sizeof switch_user_command,
@@ -83,7 +111,7 @@ int main(int argc, char *argv[]) {
 		} else {
 			exit(0);
 		}
-        } else if (argc < 2) {
+        } else if (argc <= 1) {
 		if (execl("/bin/bash", "-i", NULL)<0) {
 			fprintf(stderr, "Failed to exec - %s\n", strerror(errno));
 			exit(1);
